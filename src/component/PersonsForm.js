@@ -1,25 +1,28 @@
 import React , {useState} from 'react'
 
-export default function PersonsForm({persons,updatePersonList}) {
+export default function PersonsForm({ persons,createPerson,updatePerson }) {
     const [newName, setNewName] = useState('')
     const [newNumber, setNewNumber] = useState('')
     
     const updateList = (event) => {
         event.preventDefault()
-        if(persons.find((item) => item.name === newName)){
-          window.alert(`${newName} is already added to phonebook`)
-          return
-        }
         if(newNumber === ''){
           window.alert('number could not be empty')
           return
         }
-        const newInput = {
-            name: newName,
-            number: newNumber,
-            id: persons.length+1
+        const result = persons.find((item) => item.name === newName)
+        if(result){
+          const newNumberPerson = { ...result, number: newNumber }
+          updatePerson(newNumberPerson)
+        }else{
+          const newInput = {
+              name: newName,
+              number: newNumber
+          }
+          createPerson(newInput)
         }
-        updatePersonList(newInput)
+        setNewName('')
+        setNewNumber('')
       }
     
     const nameChanged = (event) => {

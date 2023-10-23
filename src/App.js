@@ -2,24 +2,18 @@ import { useState,useEffect } from 'react'
 import PersonsForm from './component/PersonsForm'
 import Filter from './component/Filter'
 import ShowPersons from './component/ShowPersons'
-import axios from 'axios'
+import noteServeice from './server/note'
 
 const App = () => {
-  // const [persons, setPersons] = useState([
-  //   { name: 'Arto Hellas', number: '040-123456', id: 1 },
-  //   { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-  //   { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-  //   { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  // ])
   const [persons, setPersons] = useState([])
   const [showPersons, setShowPersons] = useState(persons)
 
   useEffect(()=>{
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(response.data)
-        setShowPersons(response.data)
+    noteServeice
+      .getAll()
+      .then(initialNotes => {
+        setPersons(initialNotes)
+        setShowPersons(initialNotes)
       })
   },[])
 
@@ -28,10 +22,33 @@ const App = () => {
     setShowPersons(newShowPerson)
   }
 
-  const updatePersonList = (newInput) => {
-    const newList = persons.concat(newInput)
-    setPersons(newList)
-    setShowPersons(newList)
+  const createPerson = (newInput) => {
+    noteServeice
+    .create(newInput)
+    .then(newList => {
+      setPersons(persons.concat(newList))
+      setShowPersons(persons.concat(newList))
+    })
+  }
+
+  const deletePerson = person => {
+    console.log(person)
+    noteServeice
+    .deletePerson(person)
+    .then(() => {
+      const newPersonList = noteServeice.getAll().then(response => {
+        setPersons(response)
+        setShowPersons(response)
+      })
+    })
+  }
+
+  const updatePerson = (person) => {
+    noteServeice.update(person)
+    .then(response => {
+      setPersons(persons.map(p=> p.id === response.id ? response : p))
+      setShowPersons(persons.map(p=> p.id === response.id ? response : p))
+    })
   }
 
   return (
@@ -39,9 +56,9 @@ const App = () => {
       <h2>Phonebook</h2>
       <Filter updateFilter={updateFilter}/>
       <h3>add a new:</h3>
-      <PersonsForm persons={persons} updatePersonList={updatePersonList}/>
+      <PersonsForm persons={persons} createPerson={createPerson} updatePerson={(person) => updatePerson(person)}/>
       <h2>Numbers</h2>
-      <ShowPersons showPersons={showPersons}/>
+      <ShowPersons showPersons={showPersons} deletePerson={(id) => {deletePerson(id)}}/>
     </div>
   )
 }
