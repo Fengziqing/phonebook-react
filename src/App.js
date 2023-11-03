@@ -3,10 +3,15 @@ import PersonsForm from './component/PersonsForm'
 import Filter from './component/Filter'
 import ShowPersons from './component/ShowPersons'
 import noteServeice from './server/note'
+import './index.css'
+import Notification from './component/Notification'
+import ErrorMessage from './component/ErrorMessage'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [showPersons, setShowPersons] = useState(persons)
+  const [statusMessgae, setStatusMessage] = useState(null)
+  const [errorMessage,setErrorMessage] = useState(null)
 
   useEffect(()=>{
     noteServeice
@@ -28,6 +33,10 @@ const App = () => {
     .then(newList => {
       setPersons(persons.concat(newList))
       setShowPersons(persons.concat(newList))
+      setStatusMessage(`Added ${newInput.name}`)
+      setTimeout(()=>{
+        setStatusMessage(null)
+      },5000)
     })
   }
 
@@ -36,7 +45,7 @@ const App = () => {
     noteServeice
     .deletePerson(person)
     .then(() => {
-      const newPersonList = noteServeice.getAll().then(response => {
+      noteServeice.getAll().then(response => {
         setPersons(response)
         setShowPersons(response)
       })
@@ -45,15 +54,25 @@ const App = () => {
 
   const updatePerson = (person) => {
     noteServeice.update(person)
-    .then(response => {
-      setPersons(persons.map(p=> p.id === response.id ? response : p))
-      setShowPersons(persons.map(p=> p.id === response.id ? response : p))
+    .catch(error=>{
+      setErrorMessage(`Information of ${person.name} has already been removed from server`)
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000);
+    })
+
+    noteServeice.getAll()
+    .then(initialNotes => {
+      setPersons(initialNotes)
+      setShowPersons(initialNotes)
     })
   }
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h1>Phonebook</h1>
+      <Notification message={statusMessgae}/>
+      <ErrorMessage message={errorMessage}/>
       <Filter updateFilter={updateFilter}/>
       <h3>add a new:</h3>
       <PersonsForm persons={persons} createPerson={createPerson} updatePerson={(person) => updatePerson(person)}/>
