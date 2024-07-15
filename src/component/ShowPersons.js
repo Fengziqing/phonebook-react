@@ -4,7 +4,6 @@ import PersonList from './PersonList'
 export default function ShowPersons({showPersons,deletePerson}) {
   const deleteOne = person => {
     if(window.confirm(`Delete ${person.name} ?`)){
-      console.log('step 1')
       deletePerson(person)
     }
   }
